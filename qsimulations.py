@@ -63,6 +63,7 @@ class qsimulations:
         """
         self._H = H_tmp
         self._update_module_varibles()
+        self._prep_energy_states()
 
     def set_system_size(self, size):
         self._systemSize = size
@@ -157,3 +158,16 @@ class qsimulations:
             np.array: {op1, op2}
         """
         return op1 @ op2 + op2 @ op1
+
+    def _prep_energy_states(self):
+        """Prepare pare highest energy level state and ground state"""
+        eigenValues, eigenVectors = la.eig(self.H_op().full())
+        idx = eigenValues.argsort()
+        eigenValues = eigenValues[idx]
+        eigenVectors = eigenVectors[idx]
+
+        self.psi_ground = np.matrix(eigenVectors[0].astype(float))
+        self.psi_0 = np.matrix(eigenVectors[-1].astype(float))
+
+        self.rho_ground = Qobj(self.psi_ground.conj().T @ self.psi_ground)
+        self.rho_0 = Qobj(self.psi_0.conj().T @ self.psi_0)

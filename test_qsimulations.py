@@ -116,6 +116,26 @@ class Test(unittest.TestCase):
         result = tmp1 @ tmp2 + tmp2 @ tmp1
         np.testing.assert_array_equal(result, self.testObj.anti_commute(tmp1, tmp2))
 
+    def test_12_prepare_energy_states(self):
+        H = np.matrix(
+            [
+                [
+                    1.0,
+                    0,
+                ],
+                [0.0, 2.0],
+            ]
+        )
+        self.testObj.set_H_op(H)
+        np.testing.assert_array_equal(
+            np.matrix([[1.0, 0.0], [0.0, 0.0]]), self.testObj.rho_ground.full()
+        )
+        np.testing.assert_array_equal(
+            np.matrix([[0.0, 0.0], [0.0, 1.0]]), self.testObj.rho_0.full()
+        )
+        self.assertIsInstance(self.testObj.rho_ground, Qobj)
+        self.assertIsInstance(self.testObj.rho_0, Qobj)
+
 
 def _test_damping_Fermi_Hubbard(self, i):
     if i == 0:
