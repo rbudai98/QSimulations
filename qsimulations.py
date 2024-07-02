@@ -88,25 +88,12 @@ class qsimulations:
         return Qobj(self._H)
 
     def V_op(self, i):
-        """Periodic jump operators
+        """Damping operators, should be overwritten when system is designed
 
         Args:
             i (int): Jump operator number
-            t (float): Time stamp
 
-        Returns:
-            Qobj: Requested jump operator at specified time
         """
-        if i == 0:
-            return Qobj(-1j * self.H_op() - 0.5 * self.sum_of_V_dag_V(0))
-        if i >= 1 and i <= self._system_size_dim:
-            return Qobj(
-                0.5
-                * (
-                    self.Pauli_array(self.X, i, self._system_size)
-                    - 1j * self.Pauli_array(self.Y, i, self._system_size)
-                )
-            )
         return 0
 
     def Pauli_array(self, op, poz, size):
@@ -122,10 +109,51 @@ class qsimulations:
         """
         ret = 1
         if poz > size:
-            return ret
+            return 0
         for i in np.arange(1, size + 1, 1):
             if i == poz:
                 ret = np.kron(ret, op)
             else:
                 ret = np.kron(ret, self.I)
         return ret
+
+    def outer_prod(self, left_poz, right_poz, size):
+        """Outer product of position i and j: |i><j|
+
+        Args:
+            left_poz (int): Position of 1 in ket vector, index from 1
+            right_poz (int): Position of 1 in the bra vector, index from 1
+            size (int): Size of the overall system
+
+        Returns:
+            np.array: Requested outer product
+        """
+        psi_ket = np.array([np.full(size, 0)])
+        psi_ket[:, left_poz - 1] = 1.0
+        psi_bra = np.array([np.full(size, 0)])
+        psi_bra[:, right_poz - 1] = 1.0
+        return Qobj(psi_ket.conjugate().T @ psi_bra)
+
+    def commute(self, op1, op2):
+        """Commuting operator
+
+        Args:
+            op1 (np.array): Operator 1
+            op2 (np.array): Operator 2
+
+        Returns:
+            np.array: [op1, op2]
+        """
+        return op1 @ op2 - op2 @ op1
+
+    def anti_commute(self, op1, op2):
+        """Anti-commuting operator
+
+        Args:
+            op1 (np.array): Operator 1
+            op2 (np.array): Operator 2
+
+        Returns:
+            np.array: {op1, op2}
+        """
+        return op1 @ op2 + op2 @ op1
