@@ -59,6 +59,7 @@ def outer_prod(left_poz, right_poz, size):
     psi_bra[:, right_poz - 1] = 1.0
     return Qobj(psi_ket.conjugate().T @ psi_bra)
 
+
 def commute(op1, op2):
     """Commuting operator
 
@@ -70,6 +71,7 @@ def commute(op1, op2):
         np.array: [op1, op2]
     """
     return op1 @ op2 - op2 @ op1
+
 
 def anti_commute(op1, op2):
     """Anti-commuting operator
@@ -101,8 +103,11 @@ def Taylor_approximtion(H_op, order, dt, initial_state):
         tmpVal = H_op
         for _ in np.arange(2, i + 1, 1):
             tmpVal = tmpVal @ H_op
-        initial_state = initial_state + np.power(-1j * dt, i) / math.factorial(i) * tmpVal
+        initial_state = (
+            initial_state + np.power(-1j * dt, i) / math.factorial(i) * tmpVal
+        )
     return initial_state
+
 
 class qsimulations:
 
@@ -176,7 +181,7 @@ class qsimulations:
         """
         return Qobj(self._H)
 
-    def V_op(self, i):
+    def V_op(i):
         """Damping operators, should be overwritten when system is designed
 
         Args:
@@ -209,8 +214,7 @@ class qsimulations:
         """
         return Qobj(np.zeros((self._systemSizeDim, self._systemSizeDim)))
 
-
-    def V_damping_derivative(self, i, t):
+    def V_op_derivative(self, i):
         """Time derivative of jump operators
 
         Args:
@@ -222,7 +226,6 @@ class qsimulations:
         """
         return Qobj(np.zeros((self._systemSizeDim, self._systemSizeDim)))
 
-
     def sum_of_V_dag_V(self):
         """Summation of jump operators
 
@@ -233,8 +236,8 @@ class qsimulations:
             Qobj: Sum of all jump operators
         """
         sum = 0
-        for j in np.arange(1, self._nrOfDampingOps+1 , 1):
-            sum = sum + self.V_op(self,j).full().conj().T @ self.V_op(self, j).full()
+        for j in np.arange(1, self._nrOfDampingOps + 1, 1):
+            sum = sum + self.V_op(j).full().conj().T @ self.V_op(j).full()
         return Qobj(sum)
 
     def H_tilde_first_order(self, dt):
@@ -287,88 +290,140 @@ class qsimulations:
         Args:
                 t (float): time stamp
         """
-        
+
         sum_tmp = np.sqrt(dt) * (self._H) + np.power(dt, 3 / 2) * (
-                - 1 / 12 * anti_commute(self._H, self.sum_of_V_dag_V(self).full())
+            -1 / 12 * anti_commute(self._H, self.sum_of_V_dag_V().full())
         )
         sum = Qobj(np.kron(outer_prod(0, 0, self._nrAncillaDim).full(), sum_tmp))
 
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
-                sum_tmp = self.V_op(j).full() + dt / 2 * (
+            sum_tmp = self.V_op(j).full() + dt / 2 * (
                 anti_commute(self.V_op(j).full(), self.V_op(0).full())
-                + V_damping_derivative(j, t).full()
-                + 1 / 6 * self.V_op(j).full() @ sum_of_V_dag_V(t).full()
+                + self.V_op_derivative(j).full()
+                + 1 / 6 * self.V_op(j).full() @ self.sum_of_V_dag_V().full()
                 + 1j / 2 * self.V_op(j).full() @ self._H
-                )
-                sum = (
+            )
+            sum = (
                 sum
-                + Qobj(np.kron(outer_prod(j, 0, ancilla_dim).full(), sum_tmp))
-                + Qobj(np.kron(outer_prod(0, j, ancilla_dim).full(), sum_tmp.conj().T))
+                + Qobj(np.kron(outer_prod(j, 0, self._nrAncillaDim).full(), sum_tmp))
+                + Qobj(
+                    np.kron(
+                        outer_prod(0, j, self._nrAncillaDim).full(), sum_tmp.conj().T
+                    )
                 )
+            )
 
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
-                sum_tmp = (
+            sum_tmp = (
                 dt
                 / np.sqrt(12)
                 * (
-                        commute(self.V_op(0).full(), self.V_op(j).full())
-                        - V_damping_derivative(j, t).full()
+                    commute(self.V_op(0).full(), self.V_op(j).full())
+                    - self.V_op_derivative(j).full()
                 )
-                )
-                sum = (
+            )
+            sum = (
                 sum
-                + Qobj(np.kron(outer_prod(j + self._nrOfDampingOps, 0, ancilla_dim).full(), sum_tmp))
-                + Qobj(np.kron(outer_prod(0, j + self._nrOfDampingOps, ancilla_dim).full(), sum_tmp.conj().T))
+                + Qobj(
+                    np.kron(
+                        outer_prod(
+                            j + self._nrOfDampingOps, 0, self._nrAncillaDim
+                        ).full(),
+                        sum_tmp,
+                    )
                 )
+                + Qobj(
+                    np.kron(
+                        outer_prod(
+                            0, j + self._nrOfDampingOps, self._nrAncillaDim
+                        ).full(),
+                        sum_tmp.conj().T,
+                    )
+                )
+            )
 
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             for k in np.arange(1, self._nrOfDampingOps + 1, 1):
                 for l in np.arange(1, self._nrOfDampingOps + 1, 1):
-                        sum_tmp = (
+                    sum_tmp = (
                         dt
                         / np.sqrt(6)
                         * self.V_op(j).full()
                         @ self.V_op(k).full()
                         @ self.V_op(l).full()
-                        )
+                    )
                     sum = (
                         sum
                         + Qobj(
-                                np.kron(
+                            np.kron(
                                 outer_prod(
-                                        j + k * self._nrOfDampingOps + l * self._nrOfDampingOps * self._nrOfDampingOps - self._nrOfDampingOps * self._nrOfDampingOps + self._nrOfDampingOps, 0, ancilla_dim
+                                    j
+                                    + k * self._nrOfDampingOps
+                                    + l * self._nrOfDampingOps * self._nrOfDampingOps
+                                    - self._nrOfDampingOps * self._nrOfDampingOps
+                                    + self._nrOfDampingOps,
+                                    0,
+                                    self._nrAncillaDim,
                                 ).full(),
                                 sum_tmp,
-                                )
+                            )
                         )
                         + Qobj(
-                                np.kron(
+                            np.kron(
                                 outer_prod(
-                                        0, j + k * self._nrOfDampingOps + l * self._nrOfDampingOps * self._nrOfDampingOps - self._nrOfDampingOps * self._nrOfDampingOps + self._nrOfDampingOps, ancilla_dim
+                                    0,
+                                    j
+                                    + k * self._nrOfDampingOps
+                                    + l * self._nrOfDampingOps * self._nrOfDampingOps
+                                    - self._nrOfDampingOps * self._nrOfDampingOps
+                                    + self._nrOfDampingOps,
+                                    self._nrAncillaDim,
                                 ).full(),
                                 sum_tmp.conj().T,
-                                )
+                            )
                         )
                     )
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             for k in np.arange(1, self._nrOfDampingOps + 1, 1):
                 sum_tmp = np.sqrt(dt / 2) * self.V_op(j).full() @ self.V_op(k).full()
                 sum = (
-                        sum
-                        + Qobj(
+                    sum
+                    + Qobj(
                         np.kron(
-                                outer_prod(j + k * self._nrOfDampingOps + self._nrOfDampingOps * self._nrOfDampingOps * self._nrOfDampingOps + self._nrOfDampingOps, 0, ancilla_dim).full(),
-                                sum_tmp,
+                            outer_prod(
+                                j
+                                + k * self._nrOfDampingOps
+                                + self._nrOfDampingOps
+                                * self._nrOfDampingOps
+                                * self._nrOfDampingOps
+                                + self._nrOfDampingOps,
+                                0,
+                                self._nrAncillaDim,
+                            ).full(),
+                            sum_tmp,
                         )
-                        )
-                        + Qobj(
+                    )
+                    + Qobj(
                         np.kron(
-                                outer_prod(0, j + k * self._nrOfDampingOps + self._nrOfDampingOps * self._nrOfDampingOps * self._nrOfDampingOps + self._nrOfDampingOps, ancilla_dim).full(),
-                                sum_tmp.conj().T,
+                            outer_prod(
+                                0,
+                                j
+                                + k * self._nrOfDampingOps
+                                + self._nrOfDampingOps
+                                * self._nrOfDampingOps
+                                * self._nrOfDampingOps
+                                + self._nrOfDampingOps,
+                                self._nrAncillaDim,
+                            ).full(),
+                            sum_tmp.conj().T,
                         )
-                        )
+                    )
                 )
 
         return Qobj(
-                sum, dims=[[ancilla_dim, system_size_dim], [ancilla_dim, system_size_dim]]
+            sum,
+            dims=[
+                [self._nrAncillaDim, self._systemSizeDim],
+                [self._nrAncillaDim, self._systemSizeDim],
+            ],
         )

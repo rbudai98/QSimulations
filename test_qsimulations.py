@@ -95,7 +95,7 @@ class Test(unittest.TestCase):
         self.testObj.set_system_size(1)
         self.assertEqual(self.testObj._systemSizeDim, 2)
         np.testing.assert_array_equal(
-            self.testObj.V_op(self.testObj, 1).full(), qsimulations.annihilation_op
+            self.testObj.V_op(1).full(), qsimulations.annihilation_op
         )
 
     def test_9_outer_prod_test(self):
@@ -136,16 +136,71 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.rho_ground, Qobj)
         self.assertIsInstance(self.testObj.rho_0, Qobj)
 
+    def test_13_sum_of_V(self):
+        self.testObj.V_op = _test_damping_Fermi_Hubbard
+        self.testObj.set_nr_of_damping_ops(1)
+        self.testObj.set_system_size(1)
+        testValue = (
+            0.5
+            * (qsimulations.X + 1j * qsimulations.Y).conj().T
+            @ (0.5 * (qsimulations.X + 1j * qsimulations.Y))
+        )
+        np.testing.assert_array_equal(self.testObj.sum_of_V_dag_V().full(), testValue)
 
-def _test_damping_Fermi_Hubbard(self, i):
+    def test_14_T_first_ord_type_check(self):
+        H = np.matrix(
+            [
+                [
+                    1.0,
+                    0,
+                ],
+                [0.0, 2.0],
+            ]
+        )
+        self.testObj.set_H_op(H)
+        self.testObj.V_op = _test_damping_Fermi_Hubbard
+        self.testObj.set_nr_of_damping_ops(1)
+        self.testObj.set_system_size(1)
+        self.assertIsInstance(self.testObj.H_tilde_first_order(0.1), Qobj)
+
+    def test_15_T_second_ord_type_check(self):
+        H = np.matrix(
+            [
+                [
+                    1.0,
+                    0,
+                ],
+                [0.0, 2.0],
+            ]
+        )
+        self.testObj.set_H_op(H)
+        self.testObj.V_op = _test_damping_Fermi_Hubbard
+        self.testObj.set_nr_of_damping_ops(1)
+        self.testObj.set_system_size(1)
+        self.testObj.set_nr_of_ancillas(5)
+        self.assertIsInstance(self.testObj.H_tilde_second_order(0.1), Qobj)
+
+
+def _test_damping_Fermi_Hubbard(i):
+    systemSize = 1
+    systemSizeDim = 2
+    H = np.matrix(
+        [
+            [
+                1.0,
+                0,
+            ],
+            [0.0, 2.0],
+        ]
+    )
     if i == 0:
-        return Qobj(-1j * self.H_op() - 0.5 * self.sum_of_V_dag_V(0))
-    if i >= 1 and i <= self._systemSizeDim:
+        return Qobj(-1j * H - 0.5 * np.matrix([[0.0, 0.0], [1.0, 0.0]]))
+    if i >= 1 and i <= systemSizeDim:
         return Qobj(
             0.5
             * (
-                qsimulations.Pauli_array(qsimulations.X, i, self._systemSize)
-                + 1j * qsimulations.Pauli_array(qsimulations.Y, i, self._systemSize)
+                qsimulations.Pauli_array(qsimulations.X, i, systemSize)
+                + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
             )
         )
     return 0
