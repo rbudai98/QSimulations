@@ -53,9 +53,9 @@ class Test(unittest.TestCase):
         self.assertEquals(self.testObj._totalSystemSizeDim, 32)
 
     def test_7_Pauli_arrays(self):
-        test_I = self.testObj.Pauli_array(self.testObj.I, 1, 1)
+        test_I = qsimulations.Pauli_array(qsimulations.I, 1, 1)
         np.testing.assert_array_equal(test_I, np.array([[1.0, 0.0], [0.0, 1.0]]))
-        test_X = self.testObj.Pauli_array(self.testObj.X, 1, 1)
+        test_X = qsimulations.Pauli_array(qsimulations.X, 1, 1)
         np.testing.assert_array_equal(
             test_X,
             np.matrix(
@@ -68,9 +68,9 @@ class Test(unittest.TestCase):
                 ]
             ),
         )
-        test_Y = self.testObj.Pauli_array(self.testObj.Y, 1, 1)
+        test_Y = qsimulations.Pauli_array(qsimulations.Y, 1, 1)
         np.testing.assert_array_equal(test_Y, np.matrix([[0.0, -1j], [1j, 0.0]]))
-        test_Z = self.testObj.Pauli_array(self.testObj.Z, 1, 1)
+        test_Z = qsimulations.Pauli_array(qsimulations.Z, 1, 1)
         np.testing.assert_array_equal(
             test_Z,
             np.matrix(
@@ -84,7 +84,7 @@ class Test(unittest.TestCase):
             ),
         )
 
-        test_IZ = self.testObj.Pauli_array(self.testObj.Z, 2, 2)
+        test_IZ = qsimulations.Pauli_array(qsimulations.Z, 2, 2)
         correctValue = np.matrix(
             [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]
         )
@@ -95,26 +95,26 @@ class Test(unittest.TestCase):
         self.testObj.set_system_size(1)
         self.assertEqual(self.testObj._systemSizeDim, 2)
         np.testing.assert_array_equal(
-            self.testObj.V_op(self.testObj, 1).full(), self.testObj.annihilation_op
+            self.testObj.V_op(self.testObj, 1).full(), qsimulations.annihilation_op
         )
 
     def test_9_outer_prod_test(self):
-        self.assertIsInstance(self.testObj.outer_prod(1, 2, 2), Qobj)
+        self.assertIsInstance(qsimulations.outer_prod(1, 2, 2), Qobj)
         np.testing.assert_array_equal(
-            self.testObj.outer_prod(1, 2, 2).full(), np.matrix([[0.0, 1.0], [0.0, 0.0]])
+            qsimulations.outer_prod(1, 2, 2).full(), np.matrix([[0.0, 1.0], [0.0, 0.0]])
         )
 
     def test_10_commute_test(self):
         tmp1 = np.matrix([[1.0, 2.0], [3.0, 4.0]])
         tmp2 = np.matrix([[5.0, 6.0], [7.0, 8.0]])
         result = tmp1 @ tmp2 - tmp2 @ tmp1
-        np.testing.assert_array_equal(result, self.testObj.commute(tmp1, tmp2))
+        np.testing.assert_array_equal(result, qsimulations.commute(tmp1, tmp2))
 
     def test_11_anti_commute_test(self):
         tmp1 = np.matrix([[1.0, 2.0], [3.0, 4.0]])
         tmp2 = np.matrix([[5.0, 6.0], [7.0, 8.0]])
         result = tmp1 @ tmp2 + tmp2 @ tmp1
-        np.testing.assert_array_equal(result, self.testObj.anti_commute(tmp1, tmp2))
+        np.testing.assert_array_equal(result, qsimulations.anti_commute(tmp1, tmp2))
 
     def test_12_prepare_energy_states(self):
         H = np.matrix(
@@ -144,8 +144,8 @@ def _test_damping_Fermi_Hubbard(self, i):
         return Qobj(
             0.5
             * (
-                self.Pauli_array(self.X, i, self._systemSize)
-                + 1j * self.Pauli_array(self.Y, i, self._systemSize)
+                qsimulations.Pauli_array(qsimulations.X, i, self._systemSize)
+                + 1j * qsimulations.Pauli_array(qsimulations.Y, i, self._systemSize)
             )
         )
     return 0
