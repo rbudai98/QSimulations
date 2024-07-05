@@ -243,7 +243,7 @@ class qsimulations:
     def H_tilde_first_order(self, dt):
         """Form of H tilde:
         H =
-        sqrt(dt)H   |  V_1^{\dag}   |   V_2^{\dag}  |       0
+        sqrt(dt)H   |  V_1^{\\dag}   |   V_2^{\\dag}  |       0
                 V_1     |       0       |       0       |       0
                 V_2     |       0       |       0       |       0
                 0       |       0       |       0       |       0
