@@ -8,13 +8,13 @@ from qutip import *
 import math
 import qib
 
-ket_0 = np.array([[1.0, 0.0]])
-ket_1 = np.array([[0.0, 1.0]])
+ket_0 = np.array([[1.0, 0.0]]).astype(complex)
+ket_1 = np.array([[0.0, 1.0]]).astype(complex)
 
-I = np.array([[1.0, 0.0], [0.0, 1.0]])
-X = np.array([[0.0, 1.0], [1.0, 0.0]])
-Y = np.array([[0.0, -1j], [1j, 0.0]])
-Z = np.array([[1.0, 0.0], [0.0, -1.0]])
+I = np.array([[1.0, 0.0], [0.0, 1.0]]).astype(complex)
+X = np.array([[0.0, 1.0], [1.0, 0.0]]).astype(complex)
+Y = np.array([[0.0, -1j], [1j, 0.0]]).astype(complex)
+Z = np.array([[1.0, 0.0], [0.0, -1.0]]).astype(complex)
 
 creation_op = (X - (1j * Y)) / 2
 annihilation_op = (X + (1j * Y)) / 2
@@ -57,7 +57,7 @@ def outer_prod(left_poz, right_poz, size):
     psi_ket[:, left_poz - 1] = 1.0
     psi_bra = np.array([np.full(size, 0)])
     psi_bra[:, right_poz - 1] = 1.0
-    return Qobj(psi_ket.conjugate().T @ psi_bra)
+    return Qobj(psi_ket.conjugate().T.astype(complex) @ psi_bra.astype(complex))
 
 
 def commute(op1, op2):

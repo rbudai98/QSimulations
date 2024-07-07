@@ -180,6 +180,34 @@ class Test(unittest.TestCase):
         self.testObj.set_nr_of_ancillas(5)
         self.assertIsInstance(self.testObj.H_tilde_second_order(0.1), Qobj)
 
+    def test_16_check_H_psi_ground_state(self):
+        H = np.matrix(
+            [
+                [3.0, 0.0, 0.0, 0.0],
+                [0.0, 4.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
+            ]
+        )
+        self.testObj.set_H_op(H)
+        np.testing.assert_array_equal(
+            np.array([[0.0, 0.0, 1.0, 0.0]]), self.testObj.psi_ground
+        )
+
+    def test_17_check_H_psi_0_state(self):
+        H = np.matrix(
+            [
+                [3.0, 0.0, 0.0, 0.0],
+                [0.0, 4.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
+            ]
+        )
+        self.testObj.set_H_op(H)
+        np.testing.assert_array_equal(
+            np.array([[0.0, 1.0, 0.0, 0.0]]), self.testObj.psi_0
+        )
+
 
 def _test_damping_Fermi_Hubbard(i):
     systemSize = 1
