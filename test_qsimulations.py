@@ -48,9 +48,9 @@ class Test(unittest.TestCase):
     def test_6_test_system_config(self):
         self.testObj.set_system_size(2)
         self.testObj.set_nr_of_ancillas(3)
-        self.assertEquals(self.testObj._nrAncillaDim, 8)
-        self.assertEquals(self.testObj._systemSizeDim, 4)
-        self.assertEquals(self.testObj._totalSystemSizeDim, 32)
+        self.assertEqual(self.testObj._nrAncillaDim, 8)
+        self.assertEqual(self.testObj._systemSizeDim, 4)
+        self.assertEqual(self.testObj._totalSystemSizeDim, 32)
 
     def test_7_Pauli_arrays(self):
         test_I = qsimulations.Pauli_array(qsimulations.I, 1, 1)
