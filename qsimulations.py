@@ -197,8 +197,8 @@ class qsimulations:
         eigenValues = eigenValues[idx]
         eigenVectors = eigenVectors[idx]
 
-        self.psi_ground = np.matrix(eigenVectors[0].astype(complex))
-        self.psi_0 = np.matrix(eigenVectors[-1].astype(complex))
+        self.psi_ground = np.array([eigenVectors[0].astype(complex)])
+        self.psi_0 = np.array([eigenVectors[-1].astype(complex)])
 
         self.rho_ground = Qobj(self.psi_ground.conj().T @ self.psi_ground)
         self.rho_0 = Qobj(self.psi_0.conj().T @ self.psi_0)
