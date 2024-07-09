@@ -1,12 +1,9 @@
 # Utility function, system and constants
-from scipy.linalg import sqrtm, cosm, sinm, expm
 import matplotlib.pyplot as plt
-from scipy.special import erf
 import scipy.linalg as la
 import numpy as np
 from qutip import *
 import math
-import qib
 
 ket_0 = np.array([[1.0, 0.0]]).astype(complex)
 ket_1 = np.array([[0.0, 1.0]]).astype(complex)
@@ -86,13 +83,13 @@ def anti_commute(op1, op2):
     return op1 @ op2 + op2 @ op1
 
 
-def Taylor_approximtion(H_op, order, dt, initial_state):
+def Taylor_approximtion(Operator, order, dt, initial_state):
     """Taylor approximation for dilated hamiltonian
 
     Args:
         nrAncillaDim (int): ancillary system dimension
         systemSizeDim (int): system dimension
-        H_op (Qobj): Hamiltonian to be aproximated according to exp(sqrt(dt))
+        Operator (Qobj): Hamiltonian to be aproximated according to exp(sqrt(dt))
         order (_type_): _description_
         dt (_type_): _description_
 
@@ -100,9 +97,9 @@ def Taylor_approximtion(H_op, order, dt, initial_state):
         _type_: _description_
     """
     for i in np.arange(1, order + 1, 1):
-        tmpVal = H_op
+        tmpVal = Operator
         for _ in np.arange(2, i + 1, 1):
-            tmpVal = tmpVal @ H_op
+            tmpVal = tmpVal @ Operator
         initial_state = (
             initial_state + np.power(-1j * dt, i) / math.factorial(i) * tmpVal
         )
@@ -111,7 +108,6 @@ def Taylor_approximtion(H_op, order, dt, initial_state):
 
 class qsimulations:
 
-    _H = 0
     _systemSize = 0
     _nrAncilla = 0
     _nrAncillaDim = 0
@@ -119,7 +115,7 @@ class qsimulations:
     _totalSystemSize = 0
     _totalSystemSizeDim = 0
 
-    def __init__(self, H=0, systemSize=0, nrOfDampingOps=0, nrOFAncillas=0):
+    def __init__(self, systemSize=0, nrOfDampingOps=0, nrOFAncillas=0):
         """Initialize module parameters
 
         Args:
@@ -128,12 +124,10 @@ class qsimulations:
             nrOfDampingOps (int): nr of damping operators
             nrOFAncillas (int): nr of ancilla qubits
         """
-        self._H = H
         self._systemSize = systemSize
         self._nrAncilla = nrOFAncillas
         self._nrOfDampingOps = nrOfDampingOps
         self._update_module_varibles()
-        self._prep_energy_states()
 
     def _update_module_varibles(self):
         """Internal function, to update variables based on given parameters"""
@@ -148,16 +142,6 @@ class qsimulations:
             2, self._totalSystemSize
         )  # Total system dimensions
 
-    def set_H_op(self, H_tmp):
-        """Set system Hamiltonian
-
-        Args:
-            H_tmp (Qobj): System Hamiltonian
-        """
-        self._H = H_tmp
-        self._update_module_varibles()
-        self._prep_energy_states()
-
     def set_system_size(self, size):
         self._systemSize = size
         self._update_module_varibles()
@@ -170,7 +154,7 @@ class qsimulations:
         self._nrAncilla = nr
         self._update_module_varibles()
 
-    def H_op(self):
+    def H_op():
         """Time dependent periodic Hamiltonian for TFIM model
 
         Args:
@@ -179,7 +163,7 @@ class qsimulations:
         Returns:
             Qobj: Hamiltonian in the requested time
         """
-        return Qobj(self._H)
+        return 0
 
     def V_op(i):
         """Damping operators, should be overwritten when system is designed
@@ -193,6 +177,9 @@ class qsimulations:
     def _prep_energy_states(self):
         """Prepare pare highest energy level state and ground state"""
         eigenValues, eigenVectors = la.eig(self.H_op().full())
+        self._systemSize = (int)(np.round(np.sqrt(np.size(self.H_op().full()[:, 0]))))
+        self._update_module_varibles()
+
         idx = eigenValues.argsort()
         eigenValues = eigenValues[idx]
         eigenVectors = eigenVectors[idx]
@@ -291,8 +278,8 @@ class qsimulations:
                 t (float): time stamp
         """
 
-        sum_tmp = np.sqrt(dt) * (self._H) + np.power(dt, 3 / 2) * (
-            -1 / 12 * anti_commute(self._H, self.sum_of_V_dag_V().full())
+        sum_tmp = np.sqrt(dt) * (self.H_op().full()) + np.power(dt, 3 / 2) * (
+            -1 / 12 * anti_commute(self.H_op().full(), self.sum_of_V_dag_V().full())
         )
         sum = Qobj(np.kron(outer_prod(0, 0, self._nrAncillaDim).full(), sum_tmp))
 
@@ -301,7 +288,7 @@ class qsimulations:
                 anti_commute(self.V_op(j).full(), self.V_op(0).full())
                 + self.V_op_derivative(j).full()
                 + 1 / 6 * self.V_op(j).full() @ self.sum_of_V_dag_V().full()
-                + 1j / 2 * self.V_op(j).full() @ self._H
+                + 1j / 2 * self.V_op(j).full() @ self.H_op().full()
             )
             sum = (
                 sum

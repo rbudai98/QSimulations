@@ -15,12 +15,15 @@ class Test(unittest.TestCase):
     Unit tests for "qsimulations"
     """
 
-    testObj = qsimulations.qsimulations(0, 0, 0, 0)
+    testObj = qsimulations.qsimulations(0, 0, 0)
 
     def test_0_set_Hamiltonian(self):
-        self.testObj.set_H_op(np.array([[0.0, 0.0], [0.0, 1.0]]))
+        def H_test():
+            return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
+
+        self.testObj.H_op = H_test
         np.testing.assert_array_equal(
-            self.testObj._H, np.array([[0.0, 0.0], [0.0, 1.0]])
+            self.testObj.H_op().full(), np.array([[0.0, 0.0], [0.0, 1.0]])
         )
 
     def test_1_set_system_size(self):
@@ -36,13 +39,19 @@ class Test(unittest.TestCase):
         self.assertEqual(self.testObj._nrAncilla, 1)
 
     def test_4_qobj_hamiltonian_test(self):
-        self.testObj.set_H_op(np.array([[0.0, 0.0], [0.0, 1.0]]))
+        def H_test():
+            return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
+
+        self.testObj.H_op = H_test
         np.testing.assert_array_equal(
             np.array([[0.0, 0.0], [0.0, 1.0]]), self.testObj.H_op().full()
         )
 
     def test_5_qobj_hamiltonian_type_test(self):
-        self.testObj.set_H_op(np.array([[0.0, 0.0], [0.0, 1.0]]))
+        def H_test():
+            return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
+
+        self.testObj.H_op = H_test
         self.assertIsInstance(self.testObj.H_op(), Qobj)
 
     def test_6_test_system_config(self):
@@ -91,6 +100,36 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(test_IZ, correctValue)
 
     def test_8_test_damping_operator(self):
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [
+                            1.0,
+                            0,
+                        ],
+                        [0.0, 2.0],
+                    ]
+                )
+            )
+
+        def _test_damping_Fermi_Hubbard(i):
+            systemSize = 1
+            systemSizeDim = 2
+            if i == 0:
+                return Qobj(
+                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
+                )
+            if i >= 1 and i <= systemSizeDim:
+                return Qobj(
+                    0.5
+                    * (
+                        qsimulations.Pauli_array(qsimulations.X, i, systemSize)
+                        + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
+                    )
+                )
+            return 0
+
         self.testObj.V_op = _test_damping_Fermi_Hubbard
         self.testObj.set_system_size(1)
         self.assertEqual(self.testObj._systemSizeDim, 2)
@@ -117,16 +156,21 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(result, qsimulations.anti_commute(tmp1, tmp2))
 
     def test_12_prepare_energy_states(self):
-        H = np.array(
-            [
-                [
-                    1.0,
-                    0,
-                ],
-                [0.0, 2.0],
-            ]
-        )
-        self.testObj.set_H_op(H)
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [
+                            1.0,
+                            0,
+                        ],
+                        [0.0, 2.0],
+                    ]
+                )
+            )
+
+        self.testObj.H_op = H_test
+        self.testObj._prep_energy_states()
         np.testing.assert_array_equal(
             np.array([[1.0, 0.0], [0.0, 0.0]]), self.testObj.rho_ground.full()
         )
@@ -137,6 +181,36 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.rho_0, Qobj)
 
     def test_13_sum_of_V(self):
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [
+                            1.0,
+                            0,
+                        ],
+                        [0.0, 2.0],
+                    ]
+                )
+            )
+
+        def _test_damping_Fermi_Hubbard(i):
+            systemSize = 1
+            systemSizeDim = 2
+            if i == 0:
+                return Qobj(
+                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
+                )
+            if i >= 1 and i <= systemSizeDim:
+                return Qobj(
+                    0.5
+                    * (
+                        qsimulations.Pauli_array(qsimulations.X, i, systemSize)
+                        + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
+                    )
+                )
+            return 0
+
         self.testObj.V_op = _test_damping_Fermi_Hubbard
         self.testObj.set_nr_of_damping_ops(1)
         self.testObj.set_system_size(1)
@@ -148,32 +222,74 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(self.testObj.sum_of_V_dag_V().full(), testValue)
 
     def test_14_T_first_ord_type_check(self):
-        H = np.array(
-            [
-                [
-                    1.0,
-                    0,
-                ],
-                [0.0, 2.0],
-            ]
-        )
-        self.testObj.set_H_op(H)
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [
+                            1.0,
+                            0,
+                        ],
+                        [0.0, 2.0],
+                    ]
+                )
+            )
+
+        def _test_damping_Fermi_Hubbard(i):
+            systemSize = 1
+            systemSizeDim = 2
+            if i == 0:
+                return Qobj(
+                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
+                )
+            if i >= 1 and i <= systemSizeDim:
+                return Qobj(
+                    0.5
+                    * (
+                        qsimulations.Pauli_array(qsimulations.X, i, systemSize)
+                        + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
+                    )
+                )
+            return 0
+
+        self.testObj.H_op = H_test
         self.testObj.V_op = _test_damping_Fermi_Hubbard
         self.testObj.set_nr_of_damping_ops(1)
         self.testObj.set_system_size(1)
         self.assertIsInstance(self.testObj.H_tilde_first_order(0.1), Qobj)
 
     def test_15_T_second_ord_type_check(self):
-        H = np.array(
-            [
-                [
-                    1.0,
-                    0,
-                ],
-                [0.0, 2.0],
-            ]
-        )
-        self.testObj.set_H_op(H)
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [
+                            1.0,
+                            0,
+                        ],
+                        [0.0, 2.0],
+                    ]
+                )
+            )
+
+        def _test_damping_Fermi_Hubbard(i):
+            systemSize = 1
+            systemSizeDim = 2
+            if i == 0:
+                return Qobj(
+                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
+                )
+            if i >= 1 and i <= systemSizeDim:
+                return Qobj(
+                    0.5
+                    * (
+                        qsimulations.Pauli_array(qsimulations.X, i, systemSize)
+                        + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
+                    )
+                )
+            return 0
+
+        self.testObj.H_op = H_test
         self.testObj.V_op = _test_damping_Fermi_Hubbard
         self.testObj.set_nr_of_damping_ops(1)
         self.testObj.set_system_size(1)
@@ -181,57 +297,42 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.H_tilde_second_order(0.1), Qobj)
 
     def test_16_check_H_psi_ground_state(self):
-        H = np.array(
-            [
-                [3.0, 0.0, 0.0, 0.0],
-                [0.0, 4.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 2.0],
-            ]
-        )
-        self.testObj.set_H_op(H)
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [3.0, 0.0, 0.0, 0.0],
+                        [0.0, 4.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 2.0],
+                    ]
+                )
+            )
+
+        self.testObj.H_op = H_test
+        self.testObj._prep_energy_states()
         np.testing.assert_array_equal(
             np.array([[0.0, 0.0, 1.0, 0.0]]).astype(complex), self.testObj.psi_ground
         )
 
     def test_17_check_H_psi_0_state(self):
-        H = np.array(
-            [
-                [3.0, 0.0, 0.0, 0.0],
-                [0.0, 4.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 2.0],
-            ]
-        )
-        self.testObj.set_H_op(H)
+        def H_test():
+            return Qobj(
+                np.array(
+                    [
+                        [3.0, 0.0, 0.0, 0.0],
+                        [0.0, 4.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 2.0],
+                    ]
+                )
+            )
+
+        self.testObj.H_op = H_test
+        self.testObj._prep_energy_states()
         np.testing.assert_array_equal(
             np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex), self.testObj.psi_0
         )
-
-
-def _test_damping_Fermi_Hubbard(i):
-    systemSize = 1
-    systemSizeDim = 2
-    H = np.array(
-        [
-            [
-                1.0,
-                0,
-            ],
-            [0.0, 2.0],
-        ]
-    )
-    if i == 0:
-        return Qobj(-1j * H - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]]))
-    if i >= 1 and i <= systemSizeDim:
-        return Qobj(
-            0.5
-            * (
-                qsimulations.Pauli_array(qsimulations.X, i, systemSize)
-                + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
-            )
-        )
-    return 0
 
 
 if __name__ == "__main__":
