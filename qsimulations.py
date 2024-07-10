@@ -1,5 +1,4 @@
 # Utility function, system and constants
-import matplotlib.pyplot as plt
 import scipy.linalg as la
 import numpy as np
 from qutip import *
@@ -154,7 +153,7 @@ class qsimulations:
         self._nrAncilla = nr
         self._update_module_varibles()
 
-    def H_op():
+    def H_op(t=0):
         """Time dependent periodic Hamiltonian for TFIM model
 
         Args:
@@ -163,21 +162,21 @@ class qsimulations:
         Returns:
             Qobj: Hamiltonian in the requested time
         """
-        return 0
+        return Qobj(0)
 
-    def V_op(i):
+    def V_op(i, t=0):
         """Damping operators, should be overwritten when system is designed
 
         Args:
             i (int): Jump operator number
 
         """
-        return 0
+        return Qobj(0)
 
-    def _prep_energy_states(self):
+    def _prep_energy_states(self, t=0):
         """Prepare pare highest energy level state and ground state"""
-        eigenValues, eigenVectors = la.eig(self.H_op().full())
-        self._systemSize = (int)(np.round(np.sqrt(np.size(self.H_op().full()[:, 0]))))
+        eigenValues, eigenVectors = la.eig(self.H_op(t).full())
+        self._systemSize = (int)(np.round(np.sqrt(np.size(self.H_op(t).full()[:, 0]))))
         self._update_module_varibles()
 
         idx = eigenValues.argsort()
@@ -190,7 +189,7 @@ class qsimulations:
         self.rho_ground = Qobj(self.psi_ground.conj().T @ self.psi_ground)
         self.rho_0 = Qobj(self.psi_0.conj().T @ self.psi_0)
 
-    def H_op_derivative(self):
+    def H_op_derivative(t=0):
         """Time derivative of periodic Hamiltonian
 
         Args:
@@ -199,9 +198,9 @@ class qsimulations:
         Returns:
             np.array: The drived Hamiltonian n requested time stamp
         """
-        return Qobj(np.zeros((self._systemSizeDim, self._systemSizeDim)))
+        return Qobj(0)
 
-    def V_op_derivative(self, i):
+    def V_op_derivative(i, t=0):
         """Time derivative of jump operators
 
         Args:
@@ -211,7 +210,7 @@ class qsimulations:
         Returns:
             Qobj: Time derivative of the selected jump operator
         """
-        return Qobj(np.zeros((self._systemSizeDim, self._systemSizeDim)))
+        return Qobj(0)
 
     def sum_of_V_dag_V(self):
         """Summation of jump operators
@@ -227,7 +226,7 @@ class qsimulations:
             sum = sum + self.V_op(j).full().conj().T @ self.V_op(j).full()
         return Qobj(sum)
 
-    def H_tilde_first_order(self, dt):
+    def H_tilde_first_order(self, dt, t=0):
         """Form of H tilde:
         H =
         sqrt(dt)H   |  V_1^{\\dag}   |   V_2^{\\dag}  |       0
@@ -241,7 +240,7 @@ class qsimulations:
         sum = Qobj(
             np.kron(
                 outer_prod(0, 0, self._nrAncillaDim).full(),
-                (np.sqrt(dt) * self.H_op()).full(),
+                (np.sqrt(dt) * self.H_op(t)).full(),
             )
         )
         # First Row
@@ -270,7 +269,7 @@ class qsimulations:
             ],
         )
 
-    def H_tilde_second_order(self, dt):
+    def H_tilde_second_order(self, dt, t=0):
         """Second order approximation fo H tilde
         https://arxiv.org/pdf/2311.15533 page 27 equation B10
 
@@ -278,8 +277,8 @@ class qsimulations:
                 t (float): time stamp
         """
 
-        sum_tmp = np.sqrt(dt) * (self.H_op().full()) + np.power(dt, 3 / 2) * (
-            -1 / 12 * anti_commute(self.H_op().full(), self.sum_of_V_dag_V().full())
+        sum_tmp = np.sqrt(dt) * (self.H_op(t).full()) + np.power(dt, 3 / 2) * (
+            -1 / 12 * anti_commute(self.H_op(t).full(), self.sum_of_V_dag_V().full())
         )
         sum = Qobj(np.kron(outer_prod(0, 0, self._nrAncillaDim).full(), sum_tmp))
 
@@ -288,7 +287,7 @@ class qsimulations:
                 anti_commute(self.V_op(j).full(), self.V_op(0).full())
                 + self.V_op_derivative(j).full()
                 + 1 / 6 * self.V_op(j).full() @ self.sum_of_V_dag_V().full()
-                + 1j / 2 * self.V_op(j).full() @ self.H_op().full()
+                + 1j / 2 * self.V_op(j).full() @ self.H_op(t).full()
             )
             sum = (
                 sum
