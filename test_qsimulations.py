@@ -1,13 +1,7 @@
-from scipy.linalg import sqrtm, cosm, sinm, expm
-import matplotlib.pyplot as plt
-from scipy.special import erf
-import scipy.linalg as la
 import qsimulations
 import numpy as np
 from qutip import *
 import unittest
-import math
-import qib
 
 
 class Test(unittest.TestCase):
@@ -18,7 +12,7 @@ class Test(unittest.TestCase):
     testObj = qsimulations.qsimulations(0, 0, 0)
 
     def test_0_set_Hamiltonian(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
 
         self.testObj.H_op = H_test
@@ -39,7 +33,7 @@ class Test(unittest.TestCase):
         self.assertEqual(self.testObj._nrAncilla, 1)
 
     def test_4_qobj_hamiltonian_test(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
 
         self.testObj.H_op = H_test
@@ -48,7 +42,7 @@ class Test(unittest.TestCase):
         )
 
     def test_5_qobj_hamiltonian_type_test(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(np.array([[0.0, 0.0], [0.0, 1.0]]))
 
         self.testObj.H_op = H_test
@@ -100,7 +94,7 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(test_IZ, correctValue)
 
     def test_8_test_damping_operator(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -156,7 +150,7 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(result, qsimulations.anti_commute(tmp1, tmp2))
 
     def test_12_prepare_energy_states(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -181,7 +175,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.rho_0, Qobj)
 
     def test_13_sum_of_V(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -222,7 +216,7 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(self.testObj.sum_of_V_dag_V().full(), testValue)
 
     def test_14_T_first_ord_type_check(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -259,7 +253,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.H_tilde_first_order(0.1), Qobj)
 
     def test_15_T_second_ord_type_check(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -297,7 +291,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.H_tilde_second_order(0.1), Qobj)
 
     def test_16_check_H_psi_ground_state(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
@@ -316,7 +310,7 @@ class Test(unittest.TestCase):
         )
 
     def test_17_check_H_psi_0_state(self):
-        def H_test():
+        def H_test(t=0):
             return Qobj(
                 np.array(
                     [
