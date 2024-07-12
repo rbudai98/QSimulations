@@ -63,10 +63,7 @@ class Test(unittest.TestCase):
             test_X,
             np.array(
                 [
-                    [
-                        0.0,
-                        1.0,
-                    ],
+                    [0.0, 1.0],
                     [1.0, 0.0],
                 ]
             ),
@@ -78,10 +75,7 @@ class Test(unittest.TestCase):
             test_Z,
             np.array(
                 [
-                    [
-                        1.0,
-                        0.0,
-                    ],
+                    [1.0, 0.0],
                     [0.0, -1.0],
                 ]
             ),
@@ -98,10 +92,7 @@ class Test(unittest.TestCase):
             return Qobj(
                 np.array(
                     [
-                        [
-                            1.0,
-                            0,
-                        ],
+                        [1.0, 0.0],
                         [0.0, 2.0],
                     ]
                 )
@@ -154,10 +145,7 @@ class Test(unittest.TestCase):
             return Qobj(
                 np.array(
                     [
-                        [
-                            1.0,
-                            0,
-                        ],
+                        [1.0, 0.0],
                         [0.0, 2.0],
                     ]
                 )
@@ -179,10 +167,7 @@ class Test(unittest.TestCase):
             return Qobj(
                 np.array(
                     [
-                        [
-                            1.0,
-                            0,
-                        ],
+                        [1.0, 0.0],
                         [0.0, 2.0],
                     ]
                 )
@@ -220,10 +205,7 @@ class Test(unittest.TestCase):
             return Qobj(
                 np.array(
                     [
-                        [
-                            1.0,
-                            0,
-                        ],
+                        [1.0, 0.0],
                         [0.0, 2.0],
                     ]
                 )
@@ -257,10 +239,7 @@ class Test(unittest.TestCase):
             return Qobj(
                 np.array(
                     [
-                        [
-                            1.0,
-                            0,
-                        ],
+                        [1.0, 0.0],
                         [0.0, 2.0],
                     ]
                 )
@@ -327,6 +306,55 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(
             np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex), self.testObj.psi_0
         )
+
+    def test_18_H_first_order_return_value(self):
+        def H_test(t=0):
+            return Qobj(
+                np.array(
+                    [
+                        [1.0, 0.0],
+                        [0.0, 1.0],
+                    ]
+                )
+            )
+
+        def _damping_op(i, t=0):
+            systemSize = 1
+            systemSizeDim = 2
+            if i == 0:
+                return Qobj(
+                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
+                )
+            if i >= 1 and i <= systemSizeDim:
+                return Qobj(i * np.array([[0.0, 1j], [-2j, 0.0]]).astype(complex))
+            return 0
+
+        self.testObj.H_op = H_test
+        self.testObj.V_op = _damping_op
+        self.testObj._prep_energy_states()
+        dt = 0.1
+
+        testVariable = np.array(
+            [
+                [1.0 * np.sqrt(dt), 0.0, 0.0, 2j, 0.0, 4j, 0.0, 0.0],
+                [0.0, 1.0 * np.sqrt(dt), -1j, 0.0, -2j, 0.0, 0.0, 0.0],
+                [0.0, 1j, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [-2j, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 2j, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [-4j, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            ]
+        )
+
+        self.testObj.set_nr_of_ancillas(2)
+        self.testObj.set_nr_of_damping_ops(2)
+        np.testing.assert_array_equal(
+            self.testObj.H_tilde_first_order(dt, 0).full(), testVariable
+        )
+
+    def test_19_H_second_order_return_value(self):
+        return True
 
 
 if __name__ == "__main__":

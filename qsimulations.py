@@ -239,7 +239,7 @@ class qsimulations:
         """
         sum = Qobj(
             np.kron(
-                outer_prod(0, 0, self._nrAncillaDim).full(),
+                outer_prod(1, 1, self._nrAncillaDim).full(),
                 (np.sqrt(dt) * self.H_op(t)).full(),
             )
         )
@@ -247,7 +247,7 @@ class qsimulations:
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             sum = sum + Qobj(
                 np.kron(
-                    outer_prod(0, j, self._nrAncillaDim).full(),
+                    outer_prod(1, j + 1, self._nrAncillaDim).full(),
                     self.V_op(j).conj().trans().full(),
                 )
             )
@@ -256,7 +256,7 @@ class qsimulations:
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             sum = sum + Qobj(
                 np.kron(
-                    outer_prod(j, 0, self._nrAncillaDim).full(),
+                    outer_prod(j + 1, 1, self._nrAncillaDim).full(),
                     self.V_op(j).full(),
                 )
             )
