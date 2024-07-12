@@ -4,6 +4,10 @@ Python library for quantum systems and simulation
 ## Overview
 This module provides various tools and utilities for simulating quantum systems. It includes functions for handling common quantum operations, such as Pauli operators, outer products, commutators, and anti-commutators. Additionally, it provides a class `qsimulations` to manage and simulate time-dependent quantum systems with ancillary qubits and damping operators.
 
+## Articles
+* [Single-ancilla ground state preparation via Lindbladians](https://arxiv.org/abs/2308.15676)
+* [Simulating Open Quantum Systems Using Hamiltonian Simulations](https://arxiv.org/abs/2311.15533)
+
 ## Functions
 
 ### Utility Functions
