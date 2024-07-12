@@ -230,6 +230,7 @@ class Test(unittest.TestCase):
 
         self.testObj.H_op = H_test
         self.testObj.V_op = _test_damping_Fermi_Hubbard
+        self.testObj.set_nr_of_ancillas(2)
         self.testObj.set_nr_of_damping_ops(1)
         self.testObj.set_system_size(1)
         self.assertIsInstance(self.testObj.H_tilde_first_order(0.1), Qobj)
