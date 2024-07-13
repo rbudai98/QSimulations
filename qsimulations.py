@@ -184,10 +184,10 @@ class qsimulations:
         eigenVectors = eigenVectors[idx]
 
         self.psi_ground = np.array([eigenVectors[0].astype(complex)])
-        self.psi_0 = np.array([eigenVectors[-1].astype(complex)])
+        self.psi_highest_en = np.array([eigenVectors[-1].astype(complex)])
 
         self.rho_ground = Qobj(self.psi_ground.conj().T @ self.psi_ground)
-        self.rho_0 = Qobj(self.psi_0.conj().T @ self.psi_0)
+        self.rho_highest_en = Qobj(self.psi_highest_en.conj().T @ self.psi_highest_en)
 
     def H_op_derivative(t=0):
         """Time derivative of periodic Hamiltonian

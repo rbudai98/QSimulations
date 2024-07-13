@@ -157,10 +157,10 @@ class Test(unittest.TestCase):
             np.array([[1.0, 0.0], [0.0, 0.0]]), self.testObj.rho_ground.full()
         )
         np.testing.assert_array_equal(
-            np.array([[0.0, 0.0], [0.0, 1.0]]), self.testObj.rho_0.full()
+            np.array([[0.0, 0.0], [0.0, 1.0]]), self.testObj.rho_highest_en.full()
         )
         self.assertIsInstance(self.testObj.rho_ground, Qobj)
-        self.assertIsInstance(self.testObj.rho_0, Qobj)
+        self.assertIsInstance(self.testObj.rho_highest_en, Qobj)
 
     def test_13_sum_of_V(self):
         def H_test(t=0):
@@ -289,7 +289,7 @@ class Test(unittest.TestCase):
             np.array([[0.0, 0.0, 1.0, 0.0]]).astype(complex), self.testObj.psi_ground
         )
 
-    def test_17_check_H_psi_0_state(self):
+    def test_17_check_H_psi_highest_en_state(self):
         def H_test(t=0):
             return Qobj(
                 np.array(
@@ -305,7 +305,7 @@ class Test(unittest.TestCase):
         self.testObj.H_op = H_test
         self.testObj._prep_energy_states()
         np.testing.assert_array_equal(
-            np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex), self.testObj.psi_0
+            np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex), self.testObj.psi_highest_en
         )
 
     def test_18_H_first_order_return_value(self):
