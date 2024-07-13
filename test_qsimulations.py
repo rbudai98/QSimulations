@@ -173,7 +173,7 @@ class Test(unittest.TestCase):
                 )
             )
 
-        def _test_damping_Fermi_Hubbard(i):
+        def _test_damping_Fermi_Hubbard(i, t=0):
             systemSize = 1
             systemSizeDim = 2
             if i == 0:
@@ -211,7 +211,7 @@ class Test(unittest.TestCase):
                 )
             )
 
-        def _test_damping_Fermi_Hubbard(i):
+        def _test_damping_Fermi_Hubbard(i, t=0):
             systemSize = 1
             systemSizeDim = 2
             if i == 0:
@@ -236,39 +236,34 @@ class Test(unittest.TestCase):
         self.assertIsInstance(self.testObj.H_tilde_first_order(0.1), Qobj)
 
     def test_15_T_second_ord_type_check(self):
-        def H_test(t=0):
-            return Qobj(
-                np.array(
-                    [
-                        [1.0, 0.0],
-                        [0.0, 2.0],
-                    ]
-                )
-            )
+        dt = 1
 
-        def _test_damping_Fermi_Hubbard(i):
-            systemSize = 1
-            systemSizeDim = 2
-            if i == 0:
-                return Qobj(
-                    -1j * H_test().full() - 0.5 * np.array([[0.0, 0.0], [1.0, 0.0]])
-                )
-            if i >= 1 and i <= systemSizeDim:
-                return Qobj(
-                    0.5
-                    * (
-                        qsimulations.Pauli_array(qsimulations.X, i, systemSize)
-                        + 1j * qsimulations.Pauli_array(qsimulations.Y, i, systemSize)
-                    )
-                )
-            return 0
+        def H_tmp(t=0):
+            return Qobj(np.array([[0.0, 1j], [1.0, 0.0]]))
 
-        self.testObj.H_op = H_test
-        self.testObj.V_op = _test_damping_Fermi_Hubbard
-        self.testObj.set_nr_of_damping_ops(1)
+        self.testObj.H_op = H_tmp
+
+        def V_tmp(i, t=0):
+            return Qobj(np.array([[0.0, 2j], [0.0, 0.0]]))
+
+        self.testObj.V_op = V_tmp
+
+        def H_der_tmp(t=0):
+            return Qobj(np.array([[0.0, 3j], [0.0, 0.0]]))
+
+        self.testObj.H_op_derivative = H_der_tmp
+
+        def V_der_op(i=0, t=0):
+            return Qobj(np.array([[0.0, 4j], [0.0, 0.0]]))
+
+        self.testObj.V_op_derivative = V_der_op
+
         self.testObj.set_system_size(1)
-        self.testObj.set_nr_of_ancillas(5)
-        self.assertIsInstance(self.testObj.H_tilde_second_order(0.1), Qobj)
+        self.testObj.set_nr_of_ancillas(3)
+        self.testObj.set_nr_of_damping_ops(1)
+        self.testObj._update_module_varibles()
+
+        self.assertIsInstance(self.testObj.H_tilde_second_order(dt), Qobj)
 
     def test_16_check_H_psi_ground_state(self):
         def H_test(t=0):
@@ -305,7 +300,8 @@ class Test(unittest.TestCase):
         self.testObj.H_op = H_test
         self.testObj._prep_energy_states()
         np.testing.assert_array_equal(
-            np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex), self.testObj.psi_highest_en
+            np.array([[0.0, 1.0, 0.0, 0.0]]).astype(complex),
+            self.testObj.psi_highest_en,
         )
 
     def test_18_H_first_order_return_value(self):
@@ -353,9 +349,6 @@ class Test(unittest.TestCase):
         np.testing.assert_array_equal(
             self.testObj.H_tilde_first_order(dt, 0).full(), testVariable
         )
-
-    def test_19_H_second_order_return_value(self):
-        return True
 
 
 if __name__ == "__main__":

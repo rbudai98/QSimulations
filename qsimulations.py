@@ -212,7 +212,7 @@ class qsimulations:
         """
         return Qobj(0)
 
-    def sum_of_V_dag_V(self):
+    def sum_of_V_dag_V(self, t=0):
         """Summation of jump operators
 
         Args:
@@ -223,7 +223,7 @@ class qsimulations:
         """
         sum = 0
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
-            sum = sum + self.V_op(j).full().conj().T @ self.V_op(j).full()
+            sum = sum + self.V_op(j, t).full().conj().T @ self.V_op(j, t).full()
         return Qobj(sum)
 
     def H_tilde_first_order(self, dt, t=0):
@@ -248,7 +248,7 @@ class qsimulations:
             sum = sum + Qobj(
                 np.kron(
                     outer_prod(1, j + 1, self._nrAncillaDim).full(),
-                    self.V_op(j).conj().trans().full(),
+                    self.V_op(j, t).conj().trans().full(),
                 )
             )
 
@@ -257,7 +257,7 @@ class qsimulations:
             sum = sum + Qobj(
                 np.kron(
                     outer_prod(j + 1, 1, self._nrAncillaDim).full(),
-                    self.V_op(j).full(),
+                    self.V_op(j, t).full(),
                 )
             )
 
@@ -278,17 +278,19 @@ class qsimulations:
         """
 
         sum_tmp = np.sqrt(dt) * (self.H_op(t).full()) + np.power(dt, 3 / 2) * (
-            -1 / 12 * anti_commute(self.H_op(t).full(), self.sum_of_V_dag_V().full())
+            1 / 2 * self.H_op_derivative(t).full()
+            - 1 / 12 * anti_commute(self.H_op(t).full(), self.sum_of_V_dag_V(t).full())
         )
         sum = Qobj(np.kron(outer_prod(1, 1, self._nrAncillaDim).full(), sum_tmp))
 
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
-            sum_tmp = self.V_op(j).full() + dt / 2 * (
-                anti_commute(self.V_op(j).full(), self.V_op(0).full())
-                + self.V_op_derivative(j).full()
-                + 1 / 6 * self.V_op(j).full() @ self.sum_of_V_dag_V().full()
-                + 1j / 2 * self.V_op(j).full() @ self.H_op(t).full()
+            sum_tmp = self.V_op(j, t).full() + dt / 2 * (
+                anti_commute(self.V_op(j, t).full(), self.V_op(0, t).full())
+                + self.V_op_derivative(j, t).full()
+                + 1 / 6 * self.V_op(j, t).full() @ self.sum_of_V_dag_V(t).full()
+                + 1j / 2 * self.V_op(j, t).full() @ self.H_op(t).full()
             )
+
             sum = (
                 sum
                 + Qobj(
@@ -307,10 +309,11 @@ class qsimulations:
                 dt
                 / np.sqrt(12)
                 * (
-                    commute(self.V_op(0).full(), self.V_op(j).full())
-                    - self.V_op_derivative(j).full()
+                    commute(self.V_op(0, t).full(), self.V_op(j, t).full())
+                    - self.V_op_derivative(j, t).full()
                 )
             )
+
             sum = (
                 sum
                 + Qobj(
@@ -337,9 +340,9 @@ class qsimulations:
                     sum_tmp = (
                         dt
                         / np.sqrt(6)
-                        * self.V_op(j).full()
-                        @ self.V_op(k).full()
-                        @ self.V_op(l).full()
+                        * self.V_op(j, t).full()
+                        @ self.V_op(k, t).full()
+                        @ self.V_op(l, t).full()
                     )
                     sum = (
                         sum
@@ -376,7 +379,9 @@ class qsimulations:
                     )
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             for k in np.arange(1, self._nrOfDampingOps + 1, 1):
-                sum_tmp = np.sqrt(dt / 2) * self.V_op(j).full() @ self.V_op(k).full()
+                sum_tmp = (
+                    np.sqrt(dt / 2) * self.V_op(j, t).full() @ self.V_op(k, t).full()
+                )
                 sum = (
                     sum
                     + Qobj(
