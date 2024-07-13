@@ -280,7 +280,7 @@ class qsimulations:
         sum_tmp = np.sqrt(dt) * (self.H_op(t).full()) + np.power(dt, 3 / 2) * (
             -1 / 12 * anti_commute(self.H_op(t).full(), self.sum_of_V_dag_V().full())
         )
-        sum = Qobj(np.kron(outer_prod(0, 0, self._nrAncillaDim).full(), sum_tmp))
+        sum = Qobj(np.kron(outer_prod(1, 1, self._nrAncillaDim).full(), sum_tmp))
 
         for j in np.arange(1, self._nrOfDampingOps + 1, 1):
             sum_tmp = self.V_op(j).full() + dt / 2 * (
@@ -291,10 +291,13 @@ class qsimulations:
             )
             sum = (
                 sum
-                + Qobj(np.kron(outer_prod(j, 0, self._nrAncillaDim).full(), sum_tmp))
+                + Qobj(
+                    np.kron(outer_prod(j + 1, 1, self._nrAncillaDim).full(), sum_tmp)
+                )
                 + Qobj(
                     np.kron(
-                        outer_prod(0, j, self._nrAncillaDim).full(), sum_tmp.conj().T
+                        outer_prod(1, j + 1, self._nrAncillaDim).full(),
+                        sum_tmp.conj().T,
                     )
                 )
             )
@@ -313,7 +316,7 @@ class qsimulations:
                 + Qobj(
                     np.kron(
                         outer_prod(
-                            j + self._nrOfDampingOps, 0, self._nrAncillaDim
+                            j + self._nrOfDampingOps + 1, 1, self._nrAncillaDim
                         ).full(),
                         sum_tmp,
                     )
@@ -321,7 +324,7 @@ class qsimulations:
                 + Qobj(
                     np.kron(
                         outer_prod(
-                            0, j + self._nrOfDampingOps, self._nrAncillaDim
+                            1, j + self._nrOfDampingOps + 1, self._nrAncillaDim
                         ).full(),
                         sum_tmp.conj().T,
                     )
@@ -347,8 +350,9 @@ class qsimulations:
                                     + k * self._nrOfDampingOps
                                     + l * self._nrOfDampingOps * self._nrOfDampingOps
                                     - self._nrOfDampingOps * self._nrOfDampingOps
-                                    + self._nrOfDampingOps,
-                                    0,
+                                    + self._nrOfDampingOps
+                                    + 1,
+                                    1,
                                     self._nrAncillaDim,
                                 ).full(),
                                 sum_tmp,
@@ -357,12 +361,13 @@ class qsimulations:
                         + Qobj(
                             np.kron(
                                 outer_prod(
-                                    0,
+                                    1,
                                     j
                                     + k * self._nrOfDampingOps
                                     + l * self._nrOfDampingOps * self._nrOfDampingOps
                                     - self._nrOfDampingOps * self._nrOfDampingOps
-                                    + self._nrOfDampingOps,
+                                    + self._nrOfDampingOps
+                                    + 1,
                                     self._nrAncillaDim,
                                 ).full(),
                                 sum_tmp.conj().T,
@@ -382,8 +387,9 @@ class qsimulations:
                                 + self._nrOfDampingOps
                                 * self._nrOfDampingOps
                                 * self._nrOfDampingOps
-                                + self._nrOfDampingOps,
-                                0,
+                                + self._nrOfDampingOps
+                                + 1,
+                                1,
                                 self._nrAncillaDim,
                             ).full(),
                             sum_tmp,
@@ -392,13 +398,14 @@ class qsimulations:
                     + Qobj(
                         np.kron(
                             outer_prod(
-                                0,
+                                1,
                                 j
                                 + k * self._nrOfDampingOps
                                 + self._nrOfDampingOps
                                 * self._nrOfDampingOps
                                 * self._nrOfDampingOps
-                                + self._nrOfDampingOps,
+                                + self._nrOfDampingOps
+                                + 1,
                                 self._nrAncillaDim,
                             ).full(),
                             sum_tmp.conj().T,
