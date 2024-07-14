@@ -8,6 +8,11 @@ This module provides various tools and utilities for simulating quantum systems.
 * [Single-ancilla ground state preparation via Lindbladians](https://arxiv.org/abs/2308.15676)
 * [Simulating Open Quantum Systems Using Hamiltonian Simulations](https://arxiv.org/abs/2311.15533)
 
+## Simulations:
+* `TFIM_time_indep_multi_qubit_.ipynb`: Time independent transverse-field Ising model
+* `TFIM_time_dependent_mult_qub.ipynb`: Time dependent transverse-field Ising model
+* `Fermi_Hub_multi_qubit.ipynb`: Fermi-Hubbard model
+
 ## Functions
 
 ### Utility Functions
