@@ -182,6 +182,9 @@ class qsimulations:
         idx = eigenValues.argsort()
         eigenValues = eigenValues[idx]
         eigenVectors = eigenVectors[idx]
+        
+        print("Eigenvalues: ", eigenValues, "\n\n")
+        print("Eigenvectors: ", eigenVectors, "\n\n")
 
         self.psi_ground = np.array([eigenVectors[0].astype(complex)])
         self.psi_highest_en = np.array([eigenVectors[-1].astype(complex)])
